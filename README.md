@@ -7,23 +7,23 @@ The code provided in this repostiory is meant for reference and is not intended 
 
 Misc/ contains secondary data files used by one or more of the analysis scripts contained within R/, as well as a script for implementing the hierarchical empirical bayes model introduced by Jeong et al. (2011). The specific files contained within the Misc/ directory are:
 
-    1. CosineCorrelationLowResGCMSDataBase.csv : This is a .csv file containing the cosin similarity scores computed between all library reference compounds used in our analyses.
-    2. MetPC_modified.R : R script for fitting the hierarchical empirical bayes model introduced by Jeong et al. (2011)
-    3. Total_Intensity_for_Interference.csv : This is a .csv file containing the total spectral intensities of all samples used in the study. These intensities are used in computing spectral interference
-    4. ll_scoremat.rds : An R dataframe containing the same data as in CosineCorrelationLowResGCMSDataBase.csv
-    5. totintensity.rds : An R dataframe containing the same data as in Total_Intensity_for_Interference.csv
+1. CosineCorrelationLowResGCMSDataBase.csv : This is a .csv file containing the cosin similarity scores computed between all library reference compounds used in our analyses.
+2. MetPC_modified.R : R script for fitting the hierarchical empirical bayes model introduced by Jeong et al. (2011)
+3. Total_Intensity_for_Interference.csv : This is a .csv file containing the total spectral intensities of all samples used in the study. These intensities are used in computing spectral interference
+4. ll_scoremat.rds : An R dataframe containing the same data as in CosineCorrelationLowResGCMSDataBase.csv
+5. totintensity.rds : An R dataframe containing the same data as in Total_Intensity_for_Interference.csv
 
 Scripts/ contains all R scripts with code for replicating the analyses presented in the manuscript. The specific files contained within the Scripts/ directory are:
 
-    1. dataset_processing_for_main_analyses.R : R script that is used to process datasets for analysis. This processing includes defining unique spectral IDs, converting missing truth annotation values to "Unknown", and computing spectrum-specific factors that are used in GMM extension models.
-    2. fig2_fig3_wilcox_figsS3_S9_script.R : R script that contains code used to generate Figures 2 and 3 in the main manuscript, as well as code for computing the wilcoxon tests mentioned in the main manuscript. Also contained is code to generate Figures S3 - S9 in the supplement.  
-    3. fig4_script.R : R script that contains code to generate Figure 4 in the main manuscript.
-    4. figS1_script.R : R script that contains code to generate Figure S1 in the supplement.
-    5. figS2_script.R : R script that contains code to generate Figure S3 in the supplement.
-    6. libsize analyses.R : R script to perform library size simulation study described in main manuscript.
-    7. main_analyses.R : R script to perform the main analyses in the main manuscript in which the standard GMM is compared against several model extensions.
-    8. table_script.R : R script used to generate the values in Table 1 and 2
-    9. template_sbatch_script_for_main_analyses.sh : Analyses were performed using high performance computing resources managed by SLURM. This is a template of the sbatch script used for running jobs using these resources. 
+1. dataset_processing_for_main_analyses.R : R script that is used to process datasets for analysis. This processing includes defining unique spectral IDs, converting missing truth annotation values to "Unknown", and computing spectrum-specific factors that are used in GMM extension models.
+2. fig2_fig3_wilcox_figsS3_S9_script.R : R script that contains code used to generate Figures 2 and 3 in the main manuscript, as well as code for computing the wilcoxon tests mentioned in the main manuscript. Also contained is code to generate Figures S3 - S9 in the supplement.  
+3. fig4_script.R : R script that contains code to generate Figure 4 in the main manuscript.
+4. figS1_script.R : R script that contains code to generate Figure S1 in the supplement.
+5. figS2_script.R : R script that contains code to generate Figure S3 in the supplement.
+6. libsize analyses.R : R script to perform library size simulation study described in main manuscript.
+7. main_analyses.R : R script to perform the main analyses in the main manuscript in which the standard GMM is compared against several model extensions.
+8. table_script.R : R script used to generate the values in Table 1 and 2
+9. template_sbatch_script_for_main_analyses.sh : Analyses were performed using high performance computing resources managed by SLURM. This is a template of the sbatch script used for running jobs using these resources. 
 
 # Replicating Analyses
 
