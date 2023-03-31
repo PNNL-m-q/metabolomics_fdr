@@ -666,3 +666,149 @@ standards_msp1 <- ggplot(data = standards_combined_fdrerr_df %>% filter(ModelDet
 plot <- ggpubr::ggarrange(soil_msp1, fungi_msp1, csf_msp1, blood_msp1, urine_msp1, standards_msp1, ncol = 3, nrow = 2, widths = c(2.1,1,1))
 ggpubr::annotate_figure(plot, bottom = ggpubr::text_grob("Median Absolute Estimation Error (MAE)", hjust = 0.15),
                         left = ggpubr::text_grob("Model", rot = 90))
+
+# (Figures S3-S9) ---------------------------------------------------------
+
+dataset_totint_names <- c("CSF_1", "CSF_2", "CSF_3", "CSF_4", "CSF_5", "CSF_6", "CSF_7",
+                          "Dataset1", "Dataset2", "Dataset3", "Dataset4", "Dataset5",
+                          "Group 1_Standards", "Group 2_Standards", "Group 3_Standards", "Group 4_Standards", "Group 6_Standards",
+                          "Plasma_1", "Plasma_2", "Plasma_Ref_2", "Standard_AminoacidMix", "Standard_Mix_21Aug20", "Standard_Mix_R1", 
+                          "Standard_Mix_R2", "Standard_Mix_R3", "STD_Mix2", "UDN_CSF_metab", "Urine_01", "Urine_2")
+
+alldat <- vector("list", length = length(dataset_totint_names))
+for(i in 1:length(dataset_totint_names)){
+  # read in the dataset
+  alldat[[i]] <- readRDS(file = paste0(dataset_totint_names[i], ".rds")) # These .rds files may be generated through dataset_processing_for_main_analyses.R
+  alldat[[i]]$Dataset <- dataset_totint_names[i]
+}
+alldat <- Reduce("rbind", alldat)
+
+
+alldat <- alldat %>%
+  group_by(Dataset) %>%
+  summarise(avg_PoMatchCount = mean(PoMatchCount),
+            avg_Interference = mean(Interference),
+            avg_PeakHgt = mean(`Peak Height`),
+            avg_RT = mean(`Retention Time`),
+            TP_prop = mean(Truth.Annotation == "True.Positive"),
+            TN_prop = mean(Truth.Annotation == "True.Negative"),
+            UK_prop = mean(Truth.Annotation == "Unknown"))
+
+blood_combined_fdrerr_df$`Sample Type` <- "Human Blood Plasma"  
+csf_combined_fdrerr_df$`Sample Type` <- "Human CSF"
+fungi_combined_fdrerr_df$`Sample Type` <- "Fungi"
+soil_combined_fdrerr_df$`Sample Type` <- "Soil"
+standards_combined_fdrerr_df$`Sample Type` <- "Standards"
+urine_combined_fdrerr_df$`Sample Type` <- "Human Urine"
+
+blood_msd <- blood_combined_fdrerr_df %>%
+  group_by(Dataset, ModelDetailed) %>%
+  summarise(avgMAE = mean(MedianAbsErr),
+            sdMAE = sd(MedianAbsErr)) %>%
+  mutate(`Sample Type` = "Human Blood Plasma")
+
+csf_msd <- csf_combined_fdrerr_df %>%
+  group_by(Dataset, ModelDetailed) %>%
+  summarise(avgMAE = mean(MedianAbsErr),
+            sdMAE = sd(MedianAbsErr)) %>%
+  mutate(`Sample Type` = "Human CSF")
+
+fungi_msd <- fungi_combined_fdrerr_df %>%
+  group_by(Dataset, ModelDetailed) %>%
+  summarise(avgMAE = mean(MedianAbsErr),
+            sdMAE = sd(MedianAbsErr)) %>%
+  mutate(`Sample Type` = "Fungi")
+
+soil_msd <- soil_combined_fdrerr_df %>%
+  group_by(Dataset, ModelDetailed) %>%
+  summarise(avgMAE = mean(MedianAbsErr),
+            sdMAE = sd(MedianAbsErr)) %>%
+  mutate(`Sample Type` = "Soil")
+
+standards_msd <- standards_combined_fdrerr_df %>%
+  group_by(Dataset, ModelDetailed) %>%
+  summarise(avgMAE = mean(MedianAbsErr),
+            sdMAE = sd(MedianAbsErr)) %>%
+  mutate(`Sample Type` = "Standard")
+
+urine_msd <- urine_combined_fdrerr_df %>%
+  group_by(Dataset, ModelDetailed) %>%
+  summarise(avgMAE = mean(MedianAbsErr),
+            sdMAE = sd(MedianAbsErr)) %>%
+  mutate(`Sample Type` = "Human Urine")
+
+allres_msd <- rbind.data.frame(blood_msd,
+                               csf_msd,
+                               fungi_msd,
+                               soil_msd,
+                               standards_msd,
+                               urine_msd)
+
+comb_dat_msd <- left_join(allres_msd, alldat, by = "Dataset")
+comb_dat_msd_filt <- comb_dat_msd %>% filter(ModelDetailed %in% c("baseline", "Ext #1: ScoreDiff_z",
+                                                                  "Ext #1: SpctCndtsCount_z + ScoreDiff_z", 
+                                                                  "Ext #1: PoMatchCount_z + ScoreDiff_z")) %>%
+  mutate(ModelDetailed = as.character(ModelDetailed))
+comb_dat_msd_filt <- comb_dat_msd_filt %>% 
+  dplyr::mutate(ModelDetailed = case_when(
+    ModelDetailed == "baseline" ~ "Baseline",
+    ModelDetailed == "Ext #1: ScoreDiff_z" ~ "Ext #1: ScoreDiff",
+    ModelDetailed == "Ext #1: SpctCndtsCount_z + ScoreDiff_z" ~ "Ext #1: SpctCndtsCount + ScoreDiff",
+    ModelDetailed == "Ext #1: PoMatchCount_z + ScoreDiff_z" ~ "Ext #1: PoMatchCount + ScoreDiff"
+  )) 
+
+png(filename = "C:\\Users\\flor829\\OneDrive - PNNL\\Projects\\mq\\Papers\\GCMS_FDR\\Reviewer Comments\\Plots\\samptype_trends_pomatch.png", units="in", width=9, height=6, res=600)
+ggplot(data = comb_dat_msd_filt, aes(x = avg_PoMatchCount, y = avgMAE)) + 
+  geom_smooth(method = "loess") +
+  geom_point(aes(color = `Sample Type`)) + theme_bw() + geom_errorbar(aes(ymin = avgMAE - sdMAE, ymax = avgMAE + sdMAE, color = `Sample Type`)) + 
+  facet_wrap(~ModelDetailed) + ylab("Median Absolute Estimation Error (MAE)") + 
+  xlab("Average Number of Candidate Matches")
+dev.off()
+
+png(filename = "C:\\Users\\flor829\\OneDrive - PNNL\\Projects\\mq\\Papers\\GCMS_FDR\\Reviewer Comments\\Plots\\samptype_trends_interference.png", units="in", width=9, height=6, res=600)
+ggplot(data = comb_dat_msd_filt, aes(x = avg_Interference, y = avgMAE)) + 
+  geom_smooth(method = "loess") +
+  geom_point(aes(color = `Sample Type`)) + theme_bw() + geom_errorbar(aes(ymin = avgMAE - sdMAE, ymax = avgMAE + sdMAE, color = `Sample Type`)) + 
+  facet_wrap(~ModelDetailed) + ylab("Median Absolute Estimation Error (MAE)") + 
+  xlab("Average Spectral Interference")
+dev.off()
+
+png(filename = "C:\\Users\\flor829\\OneDrive - PNNL\\Projects\\mq\\Papers\\GCMS_FDR\\Reviewer Comments\\Plots\\samptype_trends_peakheight.png", units="in", width=9, height=6, res=600)
+ggplot(data = comb_dat_msd_filt, aes(x = avg_PeakHgt, y = avgMAE)) + 
+  geom_smooth(method = "loess") +
+  geom_point(aes(color = `Sample Type`)) + theme_bw() + geom_errorbar(aes(ymin = avgMAE - sdMAE, ymax = avgMAE + sdMAE, color = `Sample Type`)) + 
+  facet_wrap(~ModelDetailed) + ylab("Median Absolute Estimation Error (MAE)") + 
+  xlab("Average Spectral Peak Height")
+dev.off()
+
+png(filename = "C:\\Users\\flor829\\OneDrive - PNNL\\Projects\\mq\\Papers\\GCMS_FDR\\Reviewer Comments\\Plots\\samptype_trends_rt.png", units="in", width=9, height=6, res=600)
+ggplot(data = comb_dat_msd_filt, aes(x = avg_RT, y = avgMAE)) + 
+  geom_smooth(method = "loess") +
+  geom_point(aes(color = `Sample Type`)) + theme_bw() + geom_errorbar(aes(ymin = avgMAE - sdMAE, ymax = avgMAE + sdMAE, color = `Sample Type`)) + 
+  facet_wrap(~ModelDetailed) + ylab("Median Absolute Estimation Error (MAE)") + 
+  xlab("Average Measured Retention Time")
+dev.off()
+
+png(filename = "C:\\Users\\flor829\\OneDrive - PNNL\\Projects\\mq\\Papers\\GCMS_FDR\\Reviewer Comments\\Plots\\samptype_trends_tpprop.png", units="in", width=9, height=6, res=600)
+ggplot(data = comb_dat_msd_filt, aes(x = TP_prop, y = avgMAE)) + 
+  geom_smooth(method = "loess") +
+  geom_point(aes(color = `Sample Type`)) + theme_bw() + geom_errorbar(aes(ymin = avgMAE - sdMAE, ymax = avgMAE + sdMAE, color = `Sample Type`)) + 
+  facet_wrap(~ModelDetailed) + ylab("Median Absolute Estimation Error (MAE)") + 
+  xlab("Proportion of True Positive Annotations")
+dev.off()
+
+png(filename = "C:\\Users\\flor829\\OneDrive - PNNL\\Projects\\mq\\Papers\\GCMS_FDR\\Reviewer Comments\\Plots\\samptype_trends_tnprop.png", units="in", width=9, height=6, res=600)
+ggplot(data = comb_dat_msd_filt, aes(x = TN_prop, y = avgMAE)) + 
+  geom_smooth(method = "loess") +
+  geom_point(aes(color = `Sample Type`)) + theme_bw() + geom_errorbar(aes(ymin = avgMAE - sdMAE, ymax = avgMAE + sdMAE, color = `Sample Type`)) + 
+  facet_wrap(~ModelDetailed) + ylab("Median Absolute Estimation Error (MAE)") + 
+  xlab("Proportion of True Negative Annotations")
+dev.off()
+
+png(filename = "C:\\Users\\flor829\\OneDrive - PNNL\\Projects\\mq\\Papers\\GCMS_FDR\\Reviewer Comments\\Plots\\samptype_trends_ukprop.png", units="in", width=9, height=6, res=600)
+ggplot(data = comb_dat_msd_filt, aes(x = UK_prop, y = avgMAE)) + 
+  geom_smooth(method = "loess") +
+  geom_point(aes(color = `Sample Type`)) + theme_bw() + geom_errorbar(aes(ymin = avgMAE - sdMAE, ymax = avgMAE + sdMAE, color = `Sample Type`)) + 
+  facet_wrap(~ModelDetailed) + ylab("Median Absolute Estimation Error (MAE)") + 
+  xlab("Proportion of Unknown Annotations")
+dev.off()
